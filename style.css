@@ -1,0 +1,241 @@
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #0f172a;
+}
+::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+}
+
+/* Glass Card Effect */
+.glass-card {
+    background: rgba(30, 41, 59, 0.4);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Device Card Styles */
+.device-card {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.device-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.15), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.device-card:hover::before {
+    opacity: 1;
+}
+
+.device-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(59, 130, 246, 0.3);
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+}
+
+.device-card.active {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(15, 23, 42, 0.9) 100%);
+    border-color: rgba(251, 191, 36, 0.5);
+    box-shadow: 0 0 30px rgba(251, 191, 36, 0.15);
+}
+
+.device-card.active::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #fbbf24, transparent);
+    animation: shimmer 2s infinite;
+}
+
+/* Status Indicators */
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    position: relative;
+}
+
+.status-dot::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+.status-dot.available {
+    background: #10b981;
+    box-shadow: 0 0 10px #10b981;
+}
+
+.status-dot.available::after {
+    border: 2px solid #10b981;
+}
+
+.status-dot.occupied {
+    background: #ef4444;
+    box-shadow: 0 0 10px #ef4444;
+}
+
+.status-dot.occupied::after {
+    border: 2px solid #ef4444;
+}
+
+.status-dot.paused {
+    background: #f97316;
+    box-shadow: 0 0 10px #f97316;
+    animation: blink 1s infinite;
+}
+
+@keyframes pulse-ring {
+    0% { transform: scale(0.8); opacity: 1; }
+    100% { transform: scale(2); opacity: 0; }
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Timer Display */
+.timer-display {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+}
+
+/* Button Effects */
+.btn-glow {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-glow::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn-glow:active::before {
+    width: 300px;
+    height: 300px;
+}
+
+/* Price Button Selected State */
+.price-btn.selected {
+    background: rgba(251, 191, 36, 0.2);
+    border-color: #fbbf24;
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.2);
+}
+
+/* Invoice Paper Effect */
+.invoice-paper {
+    background: #ffffff;
+    background-image: linear-gradient(#f0f0f0 1px, transparent 1px);
+    background-size: 100% 2rem;
+}
+
+/* Toast Animation */
+@keyframes slideIn {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.toast {
+    animation: slideIn 0.3s ease-out;
+}
+
+/* Loading Shimmer */
+.shimmer {
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0) 100%);
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite linear;
+}
+
+/* Pause Overlay */
+.pause-overlay {
+    background: repeating-linear-gradient(
+        45deg,
+        rgba(0, 0, 0, 0.8),
+        rgba(0, 0, 0, 0.8) 10px,
+        rgba(0, 0, 0, 0.9) 10px,
+        rgba(0, 0, 0, 0.9) 20px
+    );
+}
+
+/* Print Styles */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #modal-invoice, #modal-invoice * {
+        visibility: visible;
+    }
+    #modal-invoice {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+    button {
+        display: none !important;
+    }
+}
+
+/* Mobile Optimizations */
+@media (max-width: 640px) {
+    .device-card {
+        touch-action: manipulation;
+    }
+    
+    .price-btn:active {
+        transform: scale(0.95);
+    }
+}
+
+/* Custom Selection */
+::selection {
+    background: rgba(251, 191, 36, 0.3);
+    color: white;
+}
+
+/* Focus Visible */
+button:focus-visible,
+input:focus-visible {
+    outline: 2px solid #fbbf24;
+    outline-offset: 2px;
+}
