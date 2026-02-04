@@ -5,6 +5,7 @@
 
 .device-card {
     transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .device-card:hover {
@@ -12,7 +13,28 @@
     border-color: rgba(251, 191, 36, 0.5);
 }
 
+.device-card.occupied {
+    border-color: #fbbf24;
+    background: rgba(251, 191, 36, 0.05);
+}
+
 .price-btn:focus {
+    background: #fbbf24;
+    color: black;
+}
+
+.menu-item {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: 0.2s;
+    padding: 12px;
+    border-radius: 12px;
+    text-align: center;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.menu-item:active {
     background: #fbbf24;
     color: black;
 }
@@ -23,6 +45,11 @@
 @keyframes pulse {
     0% { opacity: 1; }
     50% { opacity: 0.5; }
+}
+
+.time-up {
+    animation: pulse 1s infinite;
+    color: #ef4444 !important;
 }
 
 .tabular-nums {
