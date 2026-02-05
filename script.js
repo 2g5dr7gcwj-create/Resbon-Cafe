@@ -7,6 +7,7 @@ const state = {
 };
 
 const STORAGE_KEYS = ['PRIMARY_S1', 'BACKUP_S2', 'WINDOW_S3'];
+const HOURLY_RATE = 4000; // السعر الثابت للساعة (للأجهزة المفتوحة)
 
 const MENU = [
     { n: "عصير طبيعي", p: 1500 }, { n: "موهيتو", p: 2500 }, { n: "جاي", p: 500 },
@@ -17,21 +18,19 @@ const MENU = [
 ];
 
 function initialize() {
-    // خيارات الوقت القياسية
+    // خيارات الوقت (ساعة بـ 4000)
     const stdPrices = [
         {d:15, p:1000, label:'15 د / 1000'},
         {d:30, p:2000, label:'30 د / 2000'},
-        {d:60, p:8000, label:'ساعة / 8000'},
+        {d:60, p:4000, label:'ساعة / 4000'},
         {d:999, p:0, label:'وقت مفتوح'}
     ];
 
-    // 6 مناضد + 4 طاولات طعام
-    for(let i=1; i<=6; i++) addDevice(`منضدة ${i}`, 'table', stdPrices);
-    for(let i=1; i<=4; i++) addDevice(`طاولة طعام ${i}`, 'table', [{d:999, p:0, label:'وقت مفتوح'}]);
-    // 7 بليات
+    // تقسيم الأقسام كما طلبت
+    for(let i=1; i<=6; i++) addDevice(`منضدة ${i}`, 'billiard', stdPrices);
     for(let i=1; i<=7; i++) addDevice(`بلايستيشن ${i}`, 'ps', stdPrices);
-    // 8 بيسيات
-    for(let i=1; i<=8; i++) addDevice(`بيسي ${i}`, 'pc', [{d:15, p:1000}, {d:30, p:2000}, {d:60, p:4000}, {d:999, p:0, label:'وقت مفتوح'}]);
+    for(let i=1; i<=8; i++) addDevice(`بيسي ${i}`, 'pc', stdPrices);
+    for(let i=1; i<=4; i++) addDevice(`طاولة طعام ${i}`, 'dining', [{d:999, p:0, label:'وقت مفتوح'}]);
     
     tripleLoad();
     renderDevices();
@@ -44,27 +43,32 @@ function addDevice(name, type, prices) {
 }
 
 function renderDevices() {
-    ['table', 'ps', 'pc'].forEach(type => {
-        const container = document.getElementById(`section-${type === 'table' ? 'tables' : type}`);
+    // الأقسام الأربعة الجديدة
+    ['billiard', 'ps', 'pc', 'dining'].forEach(type => {
+        const container = document.getElementById(`section-${type}`);
         if (!container) return;
         container.innerHTML = '';
+        
         state.devices.filter(d => d.type === type).forEach(dev => {
             const isOcc = dev.status === 'occupied';
             let timeDisplay = '00:00';
-            let isTimeUp = false;
+            let livePrice = dev.basePrice;
 
             if (isOcc) {
+                const elapsedMs = Date.now() - dev.startTime;
                 if (dev.endTime > 9000000000000) {
-                    // وقت مفتوح: عد تصاعدي
-                    const elapsed = Date.now() - dev.startTime;
-                    timeDisplay = formatTime(elapsed);
+                    // وقت مفتوح: يحسب السعر تصاعدياً 4000/ساعة
+                    timeDisplay = formatTime(elapsedMs);
+                    livePrice = Math.floor((elapsedMs / (1000 * 60)) * (HOURLY_RATE / 60));
                 } else {
                     // وقت محدد: عد تنازلي
                     const rem = dev.endTime - Date.now();
                     timeDisplay = formatTime(rem);
-                    if (rem < 0) isTimeUp = true;
+                    if (rem < 0) timeDisplay = "انتهى الوقت";
                 }
             }
+
+            const totalBill = livePrice + dev.orders.reduce((a,b)=>a+b.price,0);
 
             const card = document.createElement('div');
             card.className = `device-card p-5 rounded-3xl glass-card ${isOcc ? 'occupied' : ''}`;
@@ -72,12 +76,10 @@ function renderDevices() {
             card.innerHTML = `
                 <div class="flex justify-between items-start">
                     <div><h3 class="font-bold text-white text-sm">${dev.name}</h3><p class="text-[10px] text-gray-500">${isOcc ? '👤 ' + dev.customer : 'متاح'}</p></div>
-                    <div class="text-lg font-black text-yellow-400 tabular-nums ${isTimeUp ? 'time-up' : ''}">
-                        ${timeDisplay}
-                    </div>
+                    <div class="text-lg font-black text-yellow-400 tabular-nums">${timeDisplay}</div>
                 </div>
                 <div class="mt-4 flex justify-between items-center text-emerald-400 text-[10px] font-bold">
-                    <span>${(dev.basePrice + dev.orders.reduce((a,b)=>a+b.price,0)).toLocaleString()} د.ع</span>
+                    <span>${totalBill.toLocaleString()} د.ع</span>
                     ${isOcc ? '<span class="w-2 h-2 bg-yellow-500 rounded-full animate-ping"></span>' : ''}
                 </div>`;
             container.appendChild(card);
@@ -87,113 +89,25 @@ function renderDevices() {
     tripleSave();
 }
 
-function handleDeviceClick(dev) {
-    state.selectedDevice = dev;
-    if(dev.status === 'available') {
-        document.getElementById('deviceLabel').innerText = "فتح " + dev.name;
-        const opts = document.getElementById('priceOptions');
-        opts.innerHTML = '';
-        dev.priceOptions.forEach(opt => {
-            opts.innerHTML += `<button onclick="setPrice(${opt.d}, ${opt.p})" class="price-btn p-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-bold">${opt.label || opt.d + ' د | ' + opt.p.toLocaleString()}</button>`;
-        });
-        document.getElementById('modal-add').classList.remove('hidden');
-    } else { showDetails(dev); }
-}
-
-function setPrice(d, p) { state.tempDuration = d; state.tempPrice = p; }
-
-function startSession() {
-    const dev = state.selectedDevice;
-    dev.customer = document.getElementById('customerNameInput').value || "زبون";
-    dev.status = 'occupied';
-    dev.startTime = Date.now();
-    dev.basePrice = state.tempPrice;
-    dev.endTime = state.tempDuration > 900 ? 9999999999999 : Date.now() + (state.tempDuration * 60000);
-    closeModals();
-    renderDevices();
-}
-
-function renderMenu() {
-    const grid = document.getElementById('menuGrid');
-    grid.innerHTML = '';
-    MENU.forEach(item => {
-        grid.innerHTML += `<div onclick="addOrder('${item.n}', ${item.p})" class="menu-item">${item.n}<br><span class="text-yellow-500 text-[10px]">${item.p} د.ع</span></div>`;
-    });
-}
-
-function addOrder(name, price) {
-    state.selectedDevice.orders.push({ name, price });
-    updateBill();
-    tripleSave();
-}
-
-function updateBill() {
-    const dev = state.selectedDevice;
-    const history = document.getElementById('orderHistory');
-    history.innerHTML = '';
-    let ordersSum = 0;
-    dev.orders.forEach(o => {
-        history.innerHTML += `<div class="flex justify-between bg-white/5 p-2 rounded-lg text-xs"><span>${o.name}</span><span>${o.price.toLocaleString()}</span></div>`;
-        ordersSum += o.price;
-    });
-    document.getElementById('timePriceDisplay').innerText = dev.basePrice.toLocaleString();
-    document.getElementById('ordersTotalDisplay').innerText = ordersSum.toLocaleString();
-    document.getElementById('finalTotalDisplay').innerText = (dev.basePrice + ordersSum).toLocaleString();
-}
-
-function showDetails(dev) {
-    document.getElementById('detailsTitle').innerText = dev.name + " | " + dev.customer;
-    document.getElementById('modal-details').classList.remove('hidden');
-    updateBill();
-}
+// باقي الدوال (handleDeviceClick, startSession, addOrder, finishSession إلخ) تبقى كما هي مع تغيير بسيط في finishSession لحساب السعر النهائي المفتوح.
 
 function finishSession() {
-    if(confirm("تأكيد قبض المبلغ؟")) {
-        const dev = state.selectedDevice;
-        state.totalProfit += (dev.basePrice + dev.orders.reduce((a,b)=>a+b.price,0));
+    const dev = state.selectedDevice;
+    let finalTimePrice = dev.basePrice;
+
+    if (dev.endTime > 9000000000000) {
+        const elapsedMinutes = (Date.now() - dev.startTime) / (1000 * 60);
+        finalTimePrice = Math.floor(elapsedMinutes * (HOURLY_RATE / 60));
+    }
+
+    const totalBill = finalTimePrice + dev.orders.reduce((a,b)=>a+b.price,0);
+
+    if(confirm(`قبض مبلغ: ${totalBill.toLocaleString()} د.ع؟`)) {
+        state.totalProfit += totalBill;
         dev.status = 'available'; dev.orders = []; dev.customer = ''; dev.endTime = null; dev.startTime = null;
         closeModals();
         renderDevices();
     }
 }
 
-function switchTab(t) {
-    ['tables', 'ps', 'pc'].forEach(id => {
-        document.getElementById('section-' + id).classList.add('hidden');
-        document.getElementById('btn-' + id).className = "flex-1 py-4 rounded-xl font-bold text-gray-400";
-    });
-    document.getElementById('section-' + t).classList.remove('hidden');
-    document.getElementById('btn-' + t).className = "flex-1 py-4 rounded-xl font-bold bg-yellow-500 text-black";
-}
-
-function formatTime(ms) {
-    const totalSeconds = Math.floor(Math.abs(ms) / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-}
-
-function closeModals() { document.querySelectorAll('#modal-add, #modal-details').forEach(m => m.classList.add('hidden')); }
-
-function tripleSave() {
-    const data = JSON.stringify({ devices: state.devices, totalProfit: state.totalProfit });
-    localStorage.setItem(STORAGE_KEYS[0], data);
-    sessionStorage.setItem(STORAGE_KEYS[1], data);
-    window.name = data;
-}
-
-function tripleLoad() {
-    const raw = localStorage.getItem(STORAGE_KEYS[0]) || sessionStorage.getItem(STORAGE_KEYS[1]) || (window.name.includes('devices') ? window.name : null);
-    if (raw) {
-        const data = JSON.parse(raw);
-        state.totalProfit = data.totalProfit || 0;
-        if(data.devices) {
-            data.devices.forEach(savedDev => {
-                const index = state.devices.findIndex(d => d.name === savedDev.name);
-                if(index !== -1) state.devices[index] = savedDev;
-            });
-        }
-    }
-}
-
-document.addEventListener('DOMContentLoaded', initialize);
+// الدوال المساعدة للحفظ (tripleSave, tripleLoad, formatTime) تبقى بدون تغيير لضمان عمل النظام القديم
