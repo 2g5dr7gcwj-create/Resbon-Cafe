@@ -8,6 +8,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/feather-icons"></script>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* إضافة بسيطة لضمان التمرير العرضي في الأزرار على الموبايل */
+        .tabs-container::-webkit-scrollbar { display: none; }
+    </style>
 </head>
 <body class="bg-[#020617] text-white font-['Cairo'] min-h-screen">
     
@@ -28,21 +32,23 @@
     </header>
 
     <main class="pt-24 pb-32 px-4 max-w-7xl mx-auto">
-        <div class="flex gap-2 mb-6 p-1 bg-white/5 rounded-2xl border border-white/10">
-            <button onclick="switchTab('tables')" id="btn-tables" class="flex-1 py-4 rounded-xl font-bold bg-yellow-500 text-black">المناضد/طعام</button>
-            <button onclick="switchTab('ps')" id="btn-ps" class="flex-1 py-4 rounded-xl font-bold text-gray-400">بلايستيشن</button>
-            <button onclick="switchTab('pc')" id="btn-pc" class="flex-1 py-4 rounded-xl font-bold text-gray-400">بيسيات</button>
+        <div class="flex gap-2 mb-6 p-1 bg-white/5 rounded-2xl border border-white/10 overflow-x-auto tabs-container">
+            <button onclick="switchTab('billiard')" id="btn-billiard" class="flex-1 min-w-[100px] py-4 rounded-xl font-bold bg-yellow-500 text-black whitespace-nowrap">المناضد</button>
+            <button onclick="switchTab('ps')" id="btn-ps" class="flex-1 min-w-[100px] py-4 rounded-xl font-bold text-gray-400 whitespace-nowrap">بلايستيشن</button>
+            <button onclick="switchTab('pc')" id="btn-pc" class="flex-1 min-w-[100px] py-4 rounded-xl font-bold text-gray-400 whitespace-nowrap">بيسيات</button>
+            <button onclick="switchTab('dining')" id="btn-dining" class="flex-1 min-w-[100px] py-4 rounded-xl font-bold text-gray-400 whitespace-nowrap">طعام</button>
         </div>
 
-        <div id="section-tables" class="grid grid-cols-2 md:grid-cols-3 gap-4"></div>
-        <div id="section-ps" class="hidden grid grid-cols-2 md:grid-cols-3 gap-4"></div>
-        <div id="section-pc" class="hidden grid grid-cols-2 md:grid-cols-3 gap-4"></div>
+        <div id="section-billiard" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+        <div id="section-ps" class="hidden grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+        <div id="section-pc" class="hidden grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+        <div id="section-dining" class="hidden grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
     </main>
 
     <div id="modal-add" class="fixed inset-0 z-50 hidden bg-black/90 backdrop-blur-xl flex items-center justify-center p-4">
-        <div class="glass-card w-full max-w-md rounded-3xl p-6 border border-yellow-500/30">
+        <div class="glass-card w-full max-w-md rounded-3xl p-6 border border-yellow-500/30 bg-[#0f172a]">
             <h2 id="deviceLabel" class="text-2xl font-black text-yellow-400 mb-4">فتح جلسة</h2>
-            <input type="text" id="customerNameInput" placeholder="اسم الزبون..." class="w-full bg-black/40 border border-white/10 rounded-2xl p-4 mb-4 text-center text-white outline-none">
+            <input type="text" id="customerNameInput" placeholder="اسم الزبون..." class="w-full bg-black/40 border border-white/10 rounded-2xl p-4 mb-4 text-center text-white outline-none focus:border-yellow-500">
             <div id="priceOptions" class="grid grid-cols-2 gap-3 mb-6"></div>
             <button onclick="startSession()" class="w-full py-4 bg-yellow-500 text-black rounded-2xl font-black shadow-lg">بدء الجلسة</button>
             <button onclick="closeModals()" class="w-full mt-4 text-gray-500 text-sm">إلغاء</button>
@@ -50,24 +56,24 @@
     </div>
 
     <div id="modal-details" class="fixed inset-0 z-50 hidden bg-black/95 backdrop-blur-xl flex flex-col p-4">
-        <div class="flex justify-between items-center mb-6">
+        <div class="flex justify-between items-center mb-6 max-w-7xl mx-auto w-full">
             <h2 id="detailsTitle" class="text-2xl font-black text-yellow-500">التفاصيل</h2>
             <button onclick="closeModals()" class="p-3 bg-white/10 rounded-full"><i data-feather="x"></i></button>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1 overflow-hidden">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1 overflow-hidden max-w-7xl mx-auto w-full">
             <div class="bg-white/5 p-4 rounded-3xl border border-white/10 overflow-y-auto">
                 <h3 class="text-yellow-500 font-bold mb-4 flex items-center gap-2"><i data-feather="plus-circle" class="w-4"></i> إضافة طلبات</h3>
-                <div id="menuGrid" class="grid grid-cols-2 gap-2 text-xs"></div>
+                <div id="menuGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs"></div>
             </div>
             <div class="bg-white/5 p-4 rounded-3xl border border-white/10 flex flex-col">
                 <h3 class="text-emerald-400 font-bold mb-4">الفاتورة</h3>
                 <div id="orderHistory" class="flex-1 overflow-y-auto space-y-2 text-sm mb-4"></div>
                 <div class="border-t border-white/10 pt-4 space-y-2">
-                    <div class="flex justify-between text-gray-400"><span>الوقت:</span><span id="timePriceDisplay">0</span></div>
-                    <div class="flex justify-between text-gray-400"><span>الطلبات:</span><span id="ordersTotalDisplay">0</span></div>
-                    <div class="flex justify-between text-xl font-black text-emerald-400"><span>المجموع:</span><span id="finalTotalDisplay">0</span></div>
+                    <div class="flex justify-between text-gray-400"><span>سعر الوقت:</span><span id="timePriceDisplay">0</span></div>
+                    <div class="flex justify-between text-gray-400"><span>مجموع الطلبات:</span><span id="ordersTotalDisplay">0</span></div>
+                    <div class="flex justify-between text-xl font-black text-emerald-400"><span>المجموع الكلي:</span><span id="finalTotalDisplay">0</span></div>
                 </div>
-                <button onclick="finishSession()" class="w-full mt-6 py-5 bg-emerald-500 text-white rounded-2xl font-black shadow-lg shadow-emerald-500/20">إنهاء الجلسة ✅</button>
+                <button onclick="finishSession()" class="w-full mt-6 py-5 bg-emerald-500 text-white rounded-2xl font-black shadow-lg shadow-emerald-500/20">إنهاء الجلسة وقبض المبلغ ✅</button>
             </div>
         </div>
     </div>
