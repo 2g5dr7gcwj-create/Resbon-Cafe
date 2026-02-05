@@ -1,57 +1,60 @@
+/* تحسينات إضافية لملف style.css */
+
 .glass-card {
     background: rgba(15, 23, 42, 0.7);
     backdrop-filter: blur(20px);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
 
 .device-card {
-    transition: all 0.3s ease;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    position: relative;
+    overflow: hidden;
+}
+
+/* توهج خفيف للجهاز المشغول */
+.device-card.occupied {
+    border-color: rgba(251, 191, 36, 0.5);
+    background: linear-gradient(145deg, rgba(251, 191, 36, 0.05), rgba(15, 23, 42, 0.9));
+    box-shadow: 0 0 15px rgba(251, 191, 36, 0.1);
 }
 
 .device-card:hover {
-    transform: translateY(-5px);
-    border-color: rgba(251, 191, 36, 0.5);
+    transform: translateY(-8px);
+    border-color: rgba(251, 191, 36, 0.8);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
 }
 
-.device-card.occupied {
-    border-color: #fbbf24;
-    background: rgba(251, 191, 36, 0.05);
+/* زر السعر عند الاختيار */
+.price-btn {
+    transition: all 0.2s ease;
 }
 
-.price-btn:focus {
-    background: #fbbf24;
-    color: black;
+.price-btn:active {
+    transform: scale(0.95);
 }
 
-.menu-item {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: 0.2s;
-    padding: 12px;
-    border-radius: 12px;
-    text-align: center;
-    font-weight: bold;
-    cursor: pointer;
+/* حركة التنبيه عند انتهاء الوقت */
+@keyframes alert-glow {
+    0%, 100% { box-shadow: 0 0 5px rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.5); }
+    50% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.5); border-color: #ef4444; }
 }
 
-.menu-item:active {
-    background: #fbbf24;
-    color: black;
+.time-up-card {
+    animation: alert-glow 1.5s infinite;
 }
 
-::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-thumb { background: #fbbf24; border-radius: 10px; }
-
-@keyframes pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.5; }
+/* تخصيص السكرول بار للأقسام */
+.tabs-container::-webkit-scrollbar {
+    height: 0px; /* إخفاء شريط التمرير الأفقي للأزرار */
 }
 
-.time-up {
-    animation: pulse 1s infinite;
-    color: #ef4444 !important;
+.overflow-y-auto::-webkit-scrollbar {
+    width: 4px;
 }
 
-.tabular-nums {
-    font-variant-numeric: tabular-nums;
+.overflow-y-auto::-webkit-scrollbar-thumb {
+    background: rgba(251, 191, 36, 0.3);
+    border-radius: 10px;
 }
